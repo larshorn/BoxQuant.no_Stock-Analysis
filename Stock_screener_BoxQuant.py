@@ -1,11 +1,8 @@
-"""
-
 import streamlit as st
 st.set_page_config(layout="wide")
 import yfinance as yf
 import datetime 
 import matplotlib.pyplot as plt
-import talib 
 import numpy as np
 import matplotlib.ticker as mticker
 import pandas as pd
@@ -118,30 +115,26 @@ st.line_chart(data[['Macd','Madc_signal']])
 #cci = ta.trend.cci(data['High'], data['Low'], data['Close'], n=31, c=0.015)
 
 # Plot
-st.header(f"""
-          Commodity Channel Index\n {company_name}
-          """)
-st.line_chart(cci)
+#st.header(f"""Commodity Channel Index\n {company_name}""")
+#st.line_chart(cci)
 
 # ## RSI (Relative Strength Index)
 # RSI
-data['RSI'] = talib.RSI(data['Adj Close'], timeperiod=14)
+##data['RSI'] = talib.RSI(data['Adj Close'], timeperiod=14)
 
 # Plot
-st.header(f"""
-          Relative Strength Index\n {company_name}
-          """)
-st.line_chart(data['RSI'])
+st.header(f"""Relative Strength Index\n {company_name}""")
+#st.line_chart(data['RSI'])
 
 # ## OBV (On Balance Volume)
 # OBV
-data['OBV'] = talib.OBV(data['Adj Close'], data['Volume'])/10**6
+#data['OBV'] = talib.OBV(data['Adj Close'], data['Volume'])/10**6
 
 # Plot
 st.header(f"""
           On Balance Volume\n {company_name}
           """)
-st.line_chart(data['OBV'])
+#st.line_chart(data['OBV'])
 
 # Extended Market
 fig, ax1 = plt.subplots() 
