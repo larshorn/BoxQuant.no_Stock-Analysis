@@ -4,7 +4,7 @@ import yfinance as yf
 import datetime 
 import matplotlib.pyplot as plt
 import numpy as np
-import matplotlib.ticker as mticker
+#import matplotlib.ticker as mticker
 import pandas as pd
 import requests
 yf.pdr_override()
