@@ -1,9 +1,11 @@
-import yfinance as yf
+"""
+
 import streamlit as st
+st.set_page_config(layout="wide")
+import yfinance as yf
 import datetime 
 import matplotlib.pyplot as plt
 import talib 
-import ta
 import numpy as np
 import matplotlib.ticker as mticker
 import pandas as pd
@@ -11,15 +13,24 @@ import requests
 yf.pdr_override()
 
 st.write("""
-# Technical Analysis Web Application
-Shown below are the **Moving Average Crossovers**, **Bollinger Bands**, **MACD's**, **Commodity Channel Indexes**, **Relative Strength Indexes** and **Extended Market Calculators** of any stock!
-""")
+# BoxQuant.no - Datadriven decitions\n
+Technical Analysis Web Application \n
+ **Shown below are the Moving Average Crossovers, Bollinger Bands, MACD's, Commodity Channel Indexes, Relative Strength Indexes and Extended Market Calculators of any stock!
+**""")
 
 st.sidebar.header('User Input Parameters')
+st.sidebar.text('Norwegian stocs - add .OL \nSwedish stocks  - add .SE \nETC')
+# Appends some text to the app.
+
+#start = st.sidebar.date_input("Select start date",datetime.date(2007, 3, 6))
+
+#Norway = st.sidebar.selectbox(
+#    'Norwegian stocks',
+#    ('Yes', 'No', ))
 
 today = datetime.date.today()
 def user_input_features():
-    ticker = st.sidebar.text_input("Ticker", 'AAPL')
+    ticker = st.sidebar.text_input("Ticker", 'TEL.OL')
     start_date = st.sidebar.text_input("Start Date", '2019-01-01')
     end_date = st.sidebar.text_input("End Date", f'{today}')
     return ticker, start_date, end_date
@@ -32,55 +43,79 @@ def get_symbol(symbol):
     for x in result['ResultSet']['Result']:
         if x['symbol'] == symbol:
             return x['name']
+
+
 company_name = get_symbol(symbol.upper())
 
 start = pd.to_datetime(start)
 end = pd.to_datetime(end)
 
+
+
+Fast_sma=st.sidebar.slider(
+    'Select variable simple moving average timespan',
+    10, 250, step=(10))
+
+
 # Read data 
 data = yf.download(symbol,start,end)
 
+
 # Adjusted Close Price
-st.header(f"""
-          Adjusted Close Price\n {company_name}
-          """)
+st.header(f"""Adjusted Close Price\n {company_name}""")
 st.line_chart(data['Adj Close'])
+
 
 # ## SMA and EMA
 #Simple Moving Average
-data['SMA'] = talib.SMA(data['Adj Close'], timeperiod = 20)
+data['SMA_var'] = data['Adj Close'].rolling(Fast_sma).mean()
+data['SMA_20']  = data['Adj Close'].rolling(20).mean()
+data['SMA_50']  = data['Adj Close'].rolling(50).mean()
+data['SMA_200'] = data['Adj Close'].rolling(200).mean()
+
+# Add a selectbox to the sidebar:
+
+
 
 # Exponential Moving Average
-data['EMA'] = talib.EMA(data['Adj Close'], timeperiod = 20)
+data['EMA'] = data['Adj Close'].ewm(span=20,adjust=False).mean()
 
-# Plot
-st.header(f"""
-          Simple Moving Average vs. Exponential Moving Average\n {company_name}
-          """)
-st.line_chart(data[['Adj Close','SMA','EMA']])
+## Plot
+st.header(f"""Simple Moving Average vs. Exponential Moving Average\n {company_name}""")   
+st.line_chart(data[['Adj Close','SMA_20','SMA_50','SMA_200','SMA_var','EMA']])
+
+st.header(f"""Volume traded\n {company_name}""")   
+st.bar_chart(data['Volume'])
 
 # Bollinger Bands
-data['upper_band'], data['middle_band'], data['lower_band'] = talib.BBANDS(data['Adj Close'], timeperiod =20)
+data['middle_band'] = data['Adj Close'].rolling(20).mean()
+data['upper_band'] = data['middle_band'] + data['Adj Close'].rolling(20).std(2)
+data['lower_band'] =  data['middle_band'] - data['Adj Close'].rolling(20).std(2)
+
+
 
 # Plot
-st.header(f"""
-          Bollinger Bands\n {company_name}
-          """)
-st.line_chart(data[['Adj Close','upper_band','middle_band','lower_band']])
+st.header(f"""Bollinger Bands\n {company_name}, SMA = 20, STD =2""")
+st.line_chart(data[['Adj Close','upper_band','middle_band','lower_band', 'SMA_200']])
 
 # ## MACD (Moving Average Convergence Divergence)
 # MACD
-data['macd'], data['macdsignal'], data['macdhist'] = talib.MACD(data['Adj Close'], fastperiod=12, slowperiod=26, signalperiod=9)
 
-# Plot
-st.header(f"""
-          Moving Average Convergence Divergence\n {company_name}
-          """)
-st.line_chart(data[['macd','macdsignal']])
+data['exp1'] = data['Adj Close'].ewm(span=12, adjust=False).mean()
+data['exp2'] = data['Adj Close'].ewm(span=26, adjust=False).mean()
+
+data['Macd'] = data['exp1']- data['exp2'] 
+data['Madc_signal'] = data['Macd'].ewm(span=9, adjust=False).mean()
+
+
+st.header(f"""Moving Average Convergence Divergence\n {company_name}""")
+st.line_chart(data[['Macd','Madc_signal']])
+
+
 
 ## CCI (Commodity Channel Index)
 # CCI
-cci = ta.trend.cci(data['High'], data['Low'], data['Close'], n=31, c=0.015)
+#cci = ta.trend.cci(data['High'], data['Low'], data['Close'], n=31, c=0.015)
 
 # Plot
 st.header(f"""
