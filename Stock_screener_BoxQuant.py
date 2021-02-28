@@ -10,7 +10,7 @@ import requests
 yf.pdr_override()
 
 st.write("""
-# BoxQuant.no - Datadriven decitions\n
+# BoxQuant.no - Datadriven decisions\n
 Technical Analysis Web Application \n
  **Shown below are the Moving Average Crossovers, Bollinger Bands, MACD's, Commodity Channel Indexes, Relative Strength Indexes and Extended Market Calculators of any stock!
 **""")
